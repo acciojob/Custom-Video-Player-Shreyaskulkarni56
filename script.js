@@ -10,22 +10,28 @@ const ranges = player.querySelectorAll('.player__slider');
 
 // 1. Play and Pause
 function togglePlay() {
-    if (video.paused) {
+    if (video.paused || video.ended) {
         video.play();
     } else {
         video.pause();
     }
 }
 
+// Set initial button text
+toggle.textContent = '►';
+
 toggle.addEventListener('click', togglePlay);
 
-// Update button when video plays
+// Synchronize button with video state
 video.addEventListener('play', () => {
     toggle.textContent = '❚ ❚';
 });
 
-// Update button when video pauses
 video.addEventListener('pause', () => {
+    toggle.textContent = '►';
+});
+
+video.addEventListener('ended', () => {
     toggle.textContent = '►';
 });
 
@@ -41,6 +47,8 @@ function handleProgress() {
 }
 
 video.addEventListener('timeupdate', handleProgress);
+video.addEventListener('loadedmetadata', handleProgress);
+video.addEventListener('durationchange', handleProgress);
 
 // 3. Volume Control
 function handleRangeUpdate() {
@@ -70,12 +78,15 @@ skipButtons.forEach((item) => {
 function scrub(event) {
     const rect = progress.getBoundingClientRect();
 
-    if (!rect.width || !Number.isFinite(video.duration) || video.duration <= 0) {
+    if (
+        !rect.width ||
+        !Number.isFinite(video.duration) ||
+        video.duration <= 0
+    ) {
         return;
     }
 
     const clickPosition = event.clientX - rect.left;
-
     const percentage = Math.max(
         0,
         Math.min(1, clickPosition / rect.width)
@@ -86,7 +97,7 @@ function scrub(event) {
 
 let isScrubbing = false;
 
-// Click the progress bar to seek
+// Click to seek
 progress.addEventListener('click', scrub);
 
 // Start dragging
